@@ -1,0 +1,7 @@
+{
+    "ParserModules": [
+        "parse_ghosts.py",
+        "parse_ghost_general.py"
+    ],
+    "OutputFolder": "data"
+}
