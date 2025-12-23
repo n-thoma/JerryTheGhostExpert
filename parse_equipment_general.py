@@ -1,6 +1,6 @@
 """
-Module Name: parse_ghost_general.py
-Description: This module provides utility functions for parsing the ghost general data from the Phasmophobia Fandom wiki.
+Module Name: parse_equipment_general.py
+Description: This module provides utility functions for parsing the equipment general data from the Phasmophobia Fandom wiki.
 Author: Nathaniel Thoma
 Date: 2025-12-19
 """
@@ -23,7 +23,7 @@ class Extractor():
     def extract_to_json(self):
         params = {
             "action": "query",
-            "titles": "Ghost",
+            "titles": "Equipment",
             "prop": "revisions",
             "rvprop": "content",
             "rvslots": "main",
@@ -43,19 +43,17 @@ class Extractor():
 
         # Get Wiki Hierarchy
         parsed_wiki = GeneralParser.parse_wiki_hierarchy(str(parsed_code))
-        unwanted = ["See also", "References", "Trivia", "Evidence"]
-        cleaned_wiki = GeneralParser.filter_sections(parsed_wiki, unwanted)
 
         # Export to JSON
         final_data = {
-            "Wiki Content": cleaned_wiki
+            "Wiki Content": parsed_wiki
         }
 
         output_dir_name = config.get("OutputFolder", "data")
         output_path = Path(output_dir_name)
         output_path.mkdir(parents=True, exist_ok=True)
-        file_path = output_path / "general_ghost_data.json"
+        file_path = output_path / "general_equipment_data.json"
         with open(file_path, 'w') as f:
             json.dump(final_data, f, indent=4)
 
-        print("Successfully wrote general ghost data to 'general_ghost_data.json'")
+        print("Successfully wrote general equipment data to 'general_equipment_data.json'")
