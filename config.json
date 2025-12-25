@@ -1,7 +1,11 @@
 {
     "ParserModules": [
-        "parse_ghosts.py",
-        "parse_ghost_general.py"
+        "./parsers/parse_ghosts.py",
+        "./parsers/parse_ghost_general.py",
+        "./parsers/parse_equipment.py",
+        "./parsers/parse_equipment_general.py"
     ],
+    "ParserClassName": "Extractor",
+    "WikiURL": "https://phasmophobia.fandom.com/api.php",
     "OutputFolder": "data"
 }

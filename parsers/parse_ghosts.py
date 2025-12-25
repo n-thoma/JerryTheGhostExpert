@@ -12,11 +12,6 @@ import json
 import re
 from general_parser import GeneralParser
 
-with open('config.json', 'r') as f:
-    config = json.load(f)
-
-URL = "https://phasmophobia.fandom.com/api.php"
-
 class Extractor():
 
     # -----------------------------------------------------------------------------------------------------------------
@@ -90,7 +85,7 @@ class Extractor():
     # -----------------------------------------------------------------------------------------------------------------
 
     # Main function to parse all ghosts
-    def extract_to_json(self):
+    def extract_to_json(self, output_dir, url):
         params = {
             "action": "query",
             "titles": "Ghost",
@@ -103,7 +98,7 @@ class Extractor():
         }
 
         # Fetch the page content
-        request = requests.get(URL, params=params)
+        request = requests.get(url, params=params)
         res = request.json()
         page = res["query"]["pages"][0]
         content = page["revisions"][0]["slots"]["main"]["content"]
@@ -131,7 +126,7 @@ class Extractor():
                 "origin": "*"
             }
 
-            res = requests.get(URL, params=params).json()
+            res = requests.get(url, params=params).json()
             page = res["query"]["pages"][0]
             content = page["revisions"][0]["slots"]["main"]["content"]
 
@@ -156,8 +151,9 @@ class Extractor():
             all_ghosts_data.append(final_data)
             print(f"Processed data for '{ghost_name}'")
 
-        output_dir_name = config.get("OutputFolder", "data")
-        output_path = Path(output_dir_name)
+        #end loop
+
+        output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         file_path = output_path / "all_ghosts_data.json"
         with open(file_path, 'w') as f:
