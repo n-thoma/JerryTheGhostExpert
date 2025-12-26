@@ -14,6 +14,8 @@ from pathlib import Path
 # Initializes the parsing
 # ---------------------------------------------------------------------------------------------------------------------
 
+# Dynamically find all parsers given in config.json
+
 parsers = []
 
 with open('config.json', 'r') as f:
@@ -44,31 +46,30 @@ for file_path in file_paths:
 
     try:
         parser_class = getattr(parser_module, class_name)
-        parsers.append(parser_class())
+        parsers.append({"class": parser_class(), "name": parser_module_name})
     except AttributeError:
         raise AttributeError(f"Class {class_name} has not been found in {parser_module_name}")
 
+# Handling parsing argument
 
 if len(sys.argv) > 1:
     arg = sys.argv[1]
 else:
-    arg = "none"
+    arg = "parse_none"
 
 if arg == "parse_all":
     for parser in parsers:
-        parser.extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
+        parser["class"].extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
 elif arg == "parse_none":
     print("Running code without updating parsing")
-elif arg == "parse_ghosts":
-    parsers[0].extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
-elif arg == "parse_ghost_general":
-    parsers[1].extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
-elif arg == "parse_equipment":
-    parsers[2].extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
-elif arg == "parse_equipment_general":
-    parsers[3].extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
-else:
-    print(f"Unknown argument: {arg}")
+elif len(sys.argv) > 1:
+    found = False
+    for parser in parsers:
+        if arg == parser["name"]:
+            found = True
+            parser["class"].extract_to_json(data.get("OutputFolder"), data.get("WikiURL"))
+    if not found:
+        print(f"Invalid argument given: {arg}")
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Initializes OpenAI
