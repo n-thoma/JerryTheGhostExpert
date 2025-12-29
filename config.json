@@ -3,7 +3,11 @@
         "./parsers/parse_ghosts.py",
         "./parsers/parse_ghost_general.py",
         "./parsers/parse_equipment.py",
-        "./parsers/parse_equipment_general.py"
+        "./parsers/parse_equipment_general.py",
+        "./parsers/parse_exit_door.py",
+        "./parsers/parse_interaction.py",
+        "./parsers/parse_ghost_events.py",
+        "./parsers/parse_hunts.py"
     ],
     "ParserClassName": "Extractor",
     "WikiURL": "https://phasmophobia.fandom.com/api.php",
