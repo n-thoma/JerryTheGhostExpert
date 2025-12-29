@@ -9,6 +9,7 @@ import json
 import sys
 import importlib.util
 from pathlib import Path
+from openai import OpenAI
 
 # ---------------------------------------------------------------------------------------------------------------------
 # Initializes the parsing
@@ -74,3 +75,33 @@ elif len(sys.argv) > 1:
 # ---------------------------------------------------------------------------------------------------------------------
 # Initializes OpenAI
 # ---------------------------------------------------------------------------------------------------------------------
+
+client = OpenAI(api_key="")
+
+# Upload a file with an "assistants" purpose
+file = client.files.create(
+  file=open("data/all_equipment_data.json", "rb"),
+  purpose="assistants"
+)
+print(f"File ID: {file.id}")
+
+vector_store = client.vector_stores.create(name="Project Knowledge Base")
+print(f"Vector Store ID: {vector_store.id}")
+
+vector_store_file = client.vector_stores.files.create(
+  vector_store_id=vector_store.id,
+  file_id=file.id
+)
+print(f"Vector Store File ID: {vector_store_file.id}")
+
+response = client.responses.create(
+    model="gpt-4.1",
+    tools=[{
+      "type": "file_search",
+      "vector_store_ids": [vector_store.id],
+      "max_num_results": 20
+    }],
+    input="How much does the EMF reader cost?",
+)
+
+print(response.output)
