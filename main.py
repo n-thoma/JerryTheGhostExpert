@@ -76,32 +76,90 @@ elif len(sys.argv) > 1:
 # Initializes OpenAI
 # ---------------------------------------------------------------------------------------------------------------------
 
-client = OpenAI(api_key="")
-
-# Upload a file with an "assistants" purpose
-file = client.files.create(
-  file=open("data/all_equipment_data.json", "rb"),
-  purpose="assistants"
-)
-print(f"File ID: {file.id}")
-
+client = OpenAI(api_key=str(data.get("APIKey")))
 vector_store = client.vector_stores.create(name="Project Knowledge Base")
-print(f"Vector Store ID: {vector_store.id}")
 
-vector_store_file = client.vector_stores.files.create(
-  vector_store_id=vector_store.id,
-  file_id=file.id
-)
-print(f"Vector Store File ID: {vector_store_file.id}")
+data_dir = Path(data.get("OutputFolder"))
+file_ids = []
 
-response = client.responses.create(
-    model="gpt-4.1",
-    tools=[{
-      "type": "file_search",
-      "vector_store_ids": [vector_store.id],
-      "max_num_results": 20
-    }],
-    input="How much does the EMF reader cost?",
-)
+# For every file in the data directory, upload to OpenAI
+for file_path in data_dir.glob("*"):
+    if file_path.is_file():
+            print(f"Uploading: {file_path.name}...")
+            
+            # Upload file to OpenAI and get file ID
+            with open(file_path, "rb") as f:
+                uploaded_file = client.files.create(
+                    file=f,
+                    purpose="assistants"
+                )
+                file_ids.append(uploaded_file.id)
 
-print(response.output)
+# If we have files, create a batch to add them to the vector store
+if file_ids:
+    print(f"Adding {len(file_ids)} files to Vector Store...")
+    
+    file_batch = client.vector_stores.file_batches.create_and_poll(
+      vector_store_id=vector_store.id,
+      file_ids=file_ids
+    )
+    
+    print(f"Batch Status: {file_batch.status}")
+    print(f"Files successfully indexed: {file_batch.file_counts.completed}")
+else:
+    print("No files found in the data directory.")
+
+# # List files in the vector store to confirm
+# result = client.vector_stores.files.list(vector_store_id=vector_store.id)
+# print(result)
+
+# Intialize conversation with system prompt
+system_prompt = {
+    "role": "system",
+    "content": str(data.get("AIPersonality"))
+}
+
+conversation = [system_prompt]
+
+
+# Used to handle chat interactions
+def chat(user_input: str):
+    global conversation
+
+    # Add user message
+    conversation.append({
+        "role": "user",
+        "content": user_input
+    })
+
+    # Call Responses API
+    response = client.responses.create(
+        model=str(data.get("AIModel")),
+        tools=[{
+            "type": "file_search",
+            "vector_store_ids": [vector_store.id]
+        }],
+        input=conversation
+    )
+
+    # Extract assistant text
+    assistant_message = response.output_text
+
+    # Add assistant message back to history
+    conversation.append({
+        "role": "assistant",
+        "content": assistant_message
+    })
+
+    return assistant_message
+
+
+# Loop for user input
+while True:
+    user = input("You: ")
+    if user.lower() in ("quit", "exit"):
+        break
+
+    reply = chat(user)
+    print("Bot:", reply)
+
